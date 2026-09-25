@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CredCasa - Teste da Esteira</title>
+  <style>
+    body{font-family:Arial,sans-serif;max-width:1000px;margin:40px auto;padding:0 20px;background:#f5f7fb;color:#172033}
+    .card{background:white;border-radius:14px;padding:24px;box-shadow:0 6px 30px rgba(0,0,0,.08);margin-bottom:20px}
+    button{padding:12px 18px;border:0;border-radius:8px;cursor:pointer;margin-right:8px;font-weight:700}
+    .sim{background:#146c43;color:white}.nao{background:#b42318;color:white}
+    pre{white-space:pre-wrap;background:#0d1117;color:#d9e2f2;padding:18px;border-radius:10px;overflow:auto;min-height:180px}
+    .etapa{padding:8px 0;border-bottom:1px solid #e7ebf3}
+    .ok{font-weight:700;color:#146c43}.erro{font-weight:700;color:#b42318}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Teste local da Esteira CredCasa</h1>
+    <p>Esta página usa microsserviços simulados somente para validar a orquestração do grupo Financiamento de Imóvel.</p>
+    <button class="sim" onclick="executar('APROVADO')">Testar cenário SIM</button>
+    <button class="nao" onclick="executar('NEGADO')">Testar cenário NÃO</button>
+  </div>
+  <div class="card">
+    <h2>Etapas</h2>
+    <div id="etapas">Aguardando teste...</div>
+  </div>
+  <div class="card">
+    <h2>Resposta JSON</h2>
+    <pre id="saida">Aguardando teste...</pre>
+  </div>
+<script>
+async function executar(cenarioTeste){
+  const saida=document.getElementById('saida');
+  const etapas=document.getElementById('etapas');
+  saida.textContent='Executando...'; etapas.textContent='Executando...';
+  const body={
+    cliente:{nome:'Cliente Teste',cpf:'12345678900',rendaMensal:15000},
+    imovel:{valor:500000,entrada:100000},
+    produtoId:'IMOVEL-SAC',
+    prazoMeses:360,
+    cenarioTeste
+  };
+  try{
+    const r=await fetch('/api/esteira/iniciar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await r.json();
+    saida.textContent=JSON.stringify(data,null,2);
+    const lista=data?.pedido?.etapas||[];
+    etapas.innerHTML=lista.map(e=>`<div class="etapa"><strong>${e.etapa}</strong> — ${e.status}${e.detalhe?` — ${e.detalhe}`:''}</div>`).join('') || 'Sem etapas.';
+  }catch(e){
+    saida.textContent='Erro: '+e.message;
+    etapas.innerHTML='<span class="erro">Falha ao chamar a API.</span>';
+  }
+}
+</script>
+</body>
+</html>

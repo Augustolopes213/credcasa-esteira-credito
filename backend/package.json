@@ -1,0 +1,19 @@
+{
+  "name": "credcasa-orquestrador",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "local:all": "node start-all.js",
+    "test:aprovado": "node test-flow.js APROVADO",
+    "test:negado": "node test-flow.js NEGADO"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "openai": "^6.10.0"
+  }
+}

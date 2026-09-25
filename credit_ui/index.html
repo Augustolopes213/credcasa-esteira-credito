@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#071d36">
+<title>CredCasa | Esteira de Crédito Imobiliário</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="utility"><div>Bem-vindo à <strong>CredCasa</strong>!</div><div class="utility-links"><span>◉ Ambiente seguro</span><span>◌ Suporte</span><span>?</span><button id="accessBtn">Acessibilidade</button><button id="loginBtn">♙ Entrar</button></div></div>
+  <nav class="nav">
+    <a class="logo" href="#top" aria-label="CredCasa"><span class="logo-mark">⌂</span><span><b>Cred<span>Casa</span></b><small>Seu futuro, mais perto.</small></span></a>
+    <div class="nav-items">
+      <a class="nav-active" href="#simulador">▣ <b>Simulador</b><small>de crédito</small></a>
+      <a href="#etapas">⌂ <b>Imóveis</b><small>para financiar</small></a>
+      <a href="#esteira">▥ <b>Minha proposta</b><small>acompanhe aqui</small></a>
+      <a href="#vantagens">☆ <b>Vantagens</b><small>da CredCasa</small></a>
+      <a href="#seguranca">▤ <b>Segurança</b><small>e privacidade</small></a>
+      <a href="#ajuda">☏ <b>Fale conosco</b><small>suporte</small></a>
+    </div>
+    <button class="mobile-menu" id="mobileMenu">☰</button>
+  </nav>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-person"><div class="person-circle">🏠</div><div class="floating-card fc1">✓ Dados seguros</div><div class="floating-card fc2">⚡ Simulação rápida</div></div>
+    <div class="hero-copy"><span class="eyebrow">ESTEIRA DIGITAL DE CRÉDITO</span><h1>Conquiste seu imóvel com uma jornada <strong>mais simples.</strong></h1><p>Simule, organize seus dados e acompanhe cada etapa da sua proposta em uma experiência digital segura.</p><div class="hero-badges"><span>✓ Fluxo guiado</span><span>✓ Análise automatizada</span><span>✓ Transparência</span></div></div>
+    <div class="hero-building"><div class="sun"></div><div class="building b1"></div><div class="building b2"></div><div class="building b3"></div><div class="hero-bubble">Mais que um imóvel,<br><strong>um novo começo.</strong></div></div>
+  </div>
+</section>
+
+<section class="simulator-wrap" id="simulador">
+  <div class="simulator-card">
+    <div class="title-line"></div><span class="section-kicker">SIMULADOR DE CRÉDITO</span><h2>Descubra as condições da sua proposta</h2><p class="subtitle">Preencha os dados abaixo. A simulação é acadêmica e não representa aprovação real de crédito.</p>
+    <div class="progress" id="progress"><div class="pstep active"><b>1</b><span>Cliente</span></div><i></i><div class="pstep"><b>2</b><span>Imóvel</span></div><i></i><div class="pstep"><b>3</b><span>Financiamento</span></div><i></i><div class="pstep"><b>4</b><span>Análise</span></div></div>
+
+    <form id="proposalForm" novalidate>
+      <div class="form-step active" data-page="1">
+        <div class="form-head"><span class="icon">♙</span><div><h3>Dados do cliente</h3><p>Informe os dados básicos para iniciar a proposta.</p></div></div>
+        <div class="grid two">
+          <label>Nome completo<input id="nome" autocomplete="name" placeholder="Digite seu nome" required></label>
+          <label>CPF<input id="cpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" required></label>
+          <label>Data de nascimento<input id="nascimento" type="date" required></label>
+          <label>Renda mensal (R$)<input id="renda" type="number" min="0.01" step="0.01" placeholder="Digite sua renda" required></label>
+          <label>WhatsApp<input id="telefone" inputmode="tel" placeholder="(00) 00000-0000"></label>
+          <label>E-mail<input id="email" type="email" placeholder="voce@email.com"></label>
+        </div>
+        <div class="actions"><button type="button" class="btn primary next">Continuar <span>›</span></button></div>
+      </div>
+
+      <div class="form-step" data-page="2">
+        <div class="form-head"><span class="icon">⌂</span><div><h3>Dados do imóvel</h3><p>Informe o imóvel que será vinculado à operação.</p></div></div>
+        <div class="grid two">
+          <label>Endereço<input id="endereco" placeholder="Rua, número e complemento" required></label>
+          <label>Tipo de imóvel<select id="tipo"><option>Casa</option><option>Apartamento</option><option>Terreno</option><option>Comercial</option></select></label>
+          <label>Cidade<input id="cidade" placeholder="Digite sua cidade" required></label>
+          <label>Estado<select id="estado"><option>SP</option><option>RJ</option><option>MG</option><option>PR</option><option>SC</option><option>RS</option><option>BA</option><option>PE</option><option>Outro</option></select></label>
+          <label>Valor do imóvel (R$)<input id="imovel" type="number" min="0.01" step="0.01" placeholder="0,00" required></label>
+          <label>Valor da entrada (R$)<input id="entrada" type="number" min="0" step="0.01" placeholder="0,00" required></label>
+        </div>
+        <div class="notice"><b>💡 Dica</b><span>Uma entrada maior reduz o valor financiado e pode melhorar as condições da simulação.</span></div>
+        <div class="actions"><button type="button" class="btn secondary prev">‹ Voltar</button><button type="button" class="btn primary next">Continuar <span>›</span></button></div>
+      </div>
+
+      <div class="form-step" data-page="3">
+        <div class="form-head"><span class="icon">▣</span><div><h3>Condições do financiamento</h3><p>Defina os parâmetros utilizados nesta simulação.</p></div></div>
+        <div class="grid three">
+          <label>Prazo (meses)<input id="prazo" type="number" min="1" step="1" value="240" required></label>
+          <label>Taxa mensal (%)<input id="taxa" type="number" min="0" step="0.01" value="0.80" required></label>
+          <label>Sistema de amortização<select id="sistema"><option>SAC</option><option>PRICE</option></select></label>
+        </div>
+        <div class="rule-grid"><div><b>Regra de capacidade</b><span>Referência acadêmica: até 30% da renda.</span></div><div><b>Motor de decisão</b><span>Preparado para score, bureau e antifraude.</span></div><div><b>Integrações</b><span>Contratos desacoplados por ID da proposta.</span></div></div>
+        <div class="notice"><b>Importante</b><span>O valor financiado é imóvel − entrada. Em produção, juros, score, antifraude e decisão devem ser serviços independentes.</span></div>
+        <div class="actions"><button type="button" class="btn secondary prev">‹ Voltar</button><button type="submit" class="btn primary">Criar e analisar proposta <span>›</span></button></div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="journey" id="etapas"><div class="section-center"><span class="section-kicker">COMO FUNCIONA</span><h2>Uma esteira pensada para crédito moderno</h2><p>Cada etapa possui responsabilidade clara, rastreabilidade e espaço para automação.</p></div><div class="journey-grid"><article><span>01</span><b>Captura</b><p>Onboarding e formulário com validação dos dados.</p></article><article><span>02</span><b>Enriquecimento</b><p>Bureau, cadastro, antifraude e dados complementares.</p></article><article><span>03</span><b>Risco</b><p>Score, capacidade, políticas e modelos de risco.</p></article><article><span>04</span><b>Decisão</b><p>Aprovação, recusa ou encaminhamento manual.</p></article><article><span>05</span><b>Contratação</b><p>Contrato e assinatura digital após aprovação.</p></article><article><span>06</span><b>Liberação</b><p>Disbursal idempotente e preparado para PIX/TED.</p></article></div></section>
+
+<section class="architecture" id="esteira"><div class="section-center"><span class="section-kicker">ARQUITETURA</span><h2>Visibilidade de ponta a ponta</h2><p>O protótipo já organiza os pontos onde uma arquitetura real pode receber microsserviços e eventos.</p></div><div class="arch-flow"><div>Cliente</div><i>→</i><div>Orquestrador</div><i>→</i><div>Decision Engine</div><i>→</i><div>Contratação</div><i>→</i><div>Disbursal</div></div><div class="services"><span>PostgreSQL</span><span>Redis</span><span>Kafka / RabbitMQ</span><span>OpenTelemetry</span><span>OAuth2 / OIDC</span><span>Auditoria LGPD</span></div></section>
+
+<section class="benefits" id="vantagens"><div class="section-center"><span class="section-kicker">PENSADO PARA ESCALAR</span><h2>Controle, segurança e resiliência</h2></div><div class="benefit-grid"><article><div>⚡</div><b>Resiliência</b><p>Idempotência, retries e circuit breaker preparados para integrações externas.</p></article><article><div>🔐</div><b>Segurança</b><p>TLS, controle de acesso e proteção de dados como princípios de arquitetura.</p></article><article><div>📈</div><b>Observabilidade</b><p>Eventos, métricas, logs estruturados e tracing para encontrar gargalos.</p></article><article><div>🤖</div><b>IA & dados</b><p>Espaço para OCR, antifraude, ML e modelos de risco em tempo real.</p></article></div></section>
+
+<section class="security" id="seguranca"><div><span class="section-kicker">SEGURANÇA E PRIVACIDADE</span><h2>Dados tratados com responsabilidade.</h2><p>A interface mascara dados sensíveis e apresenta a operação como simulação. Em produção, a camada de segurança deve incluir criptografia, IAM, auditoria imutável e controles LGPD.</p></div><div class="security-list"><span>✓ TLS 1.3 em trânsito</span><span>✓ Criptografia em repouso</span><span>✓ OAuth2 / OIDC + RBAC</span><span>✓ Logs de auditoria</span><span>✓ Minimização de dados</span><span>✓ Idempotência financeira</span></div></section>
+
+<section id="ajuda" class="help"><div><span class="section-kicker">PRECISA DE AJUDA?</span><h2>Estamos aqui para orientar.</h2><p>Este protótipo é uma experiência acadêmica de esteira de crédito imobiliário.</p></div><button class="btn primary" id="helpBtn">Falar com suporte</button></section>
+
+<section id="result" class="result hidden"></section>
+</main>
+
+<footer><div class="footer-main"><div class="footer-brand"><div class="logo"><span class="logo-mark">⌂</span><span><b>Cred<span>Casa</span></b><small>Seu futuro, mais perto.</small></span></div><p>Uma experiência digital para simulação e acompanhamento de operações de crédito imobiliário.</p></div><div><b>Institucional</b><a href="#vantagens">Sobre a CredCasa</a><a href="#seguranca">Privacidade</a><a href="#top">Termos de uso</a></div><div><b>Atendimento</b><a href="#ajuda">Central de ajuda</a><a href="#ajuda">Fale conosco</a><a href="#ajuda">Ouvidoria</a></div><div><b>Segurança</b><a href="#seguranca">LGPD</a><a href="#esteira">Arquitetura</a><a href="#esteira">Observabilidade</a></div></div><div class="footer-bottom"><span>© 2026 CredCasa. Projeto acadêmico.</span><strong>Seu futuro, mais perto.</strong></div></footer>
+
+<div id="authModal" class="modal-overlay hidden">
+  <div class="modal-card">
+    <button class="modal-close" id="authClose" aria-label="Fechar">✕</button>
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="login" type="button">Entrar</button>
+      <button class="modal-tab" data-tab="register" type="button">Criar conta</button>
+    </div>
+
+    <form id="loginForm" class="modal-form active" novalidate>
+      <h3>Acesse sua conta</h3>
+      <p class="modal-sub">Entre com o e-mail e a senha cadastrados.</p>
+      <label>E-mail<input id="loginEmail" type="email" autocomplete="username" placeholder="voce@email.com" required></label>
+      <label>Senha<input id="loginPassword" type="password" autocomplete="current-password" placeholder="Sua senha" required></label>
+      <div class="modal-error" id="loginError"></div>
+      <button type="submit" class="btn primary modal-submit">Entrar</button>
+      <p class="modal-hint">Ainda não tem conta? <a href="#" data-tab="register">Criar conta</a></p>
+    </form>
+
+    <form id="registerForm" class="modal-form" novalidate>
+      <h3>Criar minha conta</h3>
+      <p class="modal-sub">Leva menos de um minuto.</p>
+      <label>Nome completo<input id="regNome" autocomplete="name" placeholder="Digite seu nome" required></label>
+      <label>E-mail<input id="regEmail" type="email" autocomplete="username" placeholder="voce@email.com" required></label>
+      <label>Senha<input id="regPassword" type="password" autocomplete="new-password" placeholder="Crie uma senha (mín. 6 caracteres)" minlength="6" required></label>
+      <label>Confirmar senha<input id="regPassword2" type="password" autocomplete="new-password" placeholder="Repita a senha" minlength="6" required></label>
+      <div class="modal-error" id="registerError"></div>
+      <button type="submit" class="btn primary modal-submit">Criar conta</button>
+      <p class="modal-hint">Já tem conta? <a href="#" data-tab="login">Entrar</a></p>
+    </form>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status"></div>
+<!-- Janela de chat flutuante (estilo "Nova mensagem" do Gmail) -->
+<div class="chat-window hidden" id="supportModal">
+  <div class="chat-window-header" id="chatDragHandle">
+    <div class="chat-window-title">
+      <span class="chat-window-icon">🤖</span>
+      <span id="supportTitle">Assistente CredCasa</span>
+    </div>
+    <div class="chat-window-actions">
+      <button type="button" id="chatSettingsBtn" title="Configurar IA" aria-label="Configurar IA">⚙</button>
+      <button type="button" id="supportMinimize" title="Minimizar" aria-label="Minimizar">–</button>
+      <button type="button" id="supportClose" title="Fechar" aria-label="Fechar">×</button>
+    </div>
+  </div>
+
+  <div class="chat-window-body" id="chatWindowBody">
+    <div class="chat-settings hidden" id="chatSettings">
+      <p class="chat-settings-title">Assistente com IA</p>
+      <p class="chat-settings-hint">A IA é chamada pelo servidor do CredCasa. A chave da API não fica exposta no navegador.</p>
+      <p class="chat-settings-status" id="chatKeyStatus">Conexão com o servidor será verificada ao enviar uma mensagem.</p>
+    </div>
+
+    <div class="chat-messages" id="chatMessages" role="log" aria-live="polite"></div>
+
+    <div class="chat-suggestions" id="chatSuggestions">
+      <button type="button" class="chip" data-q="Como funciona o cálculo SAC e PRICE?">SAC x PRICE</button>
+      <button type="button" class="chip" data-q="Quais documentos preciso para financiar?">Documentos</button>
+      <button type="button" class="chip" data-q="O que é comprometimento de renda?">Comprometimento de renda</button>
+      <button type="button" class="chip" data-q="Por que minha proposta foi para análise manual?">Análise manual</button>
+    </div>
+
+    <form id="chatForm" class="chat-input-row">
+      <input id="chatInput" type="text" placeholder="Digite sua dúvida..." autocomplete="off" required>
+      <button class="btn primary chat-send" type="submit" aria-label="Enviar">➤</button>
+    </form>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
