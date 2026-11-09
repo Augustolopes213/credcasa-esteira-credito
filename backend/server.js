@@ -29,6 +29,27 @@ const paths = {
   operacoes: process.env.OPERACOES_API_PATH || '/operacoes'
 };
 
+// Aceita tanto URL base (http://host:porta) quanto endpoint completo
+// (http://host:porta/api/v1/...). Isso facilita a troca de IP no dia da integração.
+function montarEndpoint(base, rota) {
+  const b = String(base || '').replace(/\/+$/, '');
+  const r = String(rota || '');
+  try {
+    const u = new URL(b);
+    if (u.pathname && u.pathname !== '/') return b;
+  } catch {
+    // Se não for URL absoluta, mantém a concatenação simples abaixo.
+  }
+  return `${b}${r.startsWith('/') ? '' : '/'}${r}`;
+}
+
+const endpoints = {
+  produtos: montarEndpoint(services.produtos, paths.produtos),
+  score: montarEndpoint(services.score, paths.score),
+  decisao: montarEndpoint(services.decisao, paths.decisao),
+  operacoes: montarEndpoint(services.operacoes, paths.operacoes)
+};
+
 const pedidos = new Map();
 
 app.use(cors());
@@ -207,10 +228,10 @@ app.get('/api/health', (_req, res) => {
     servico: 'Financiamento de Imóvel - Orquestrador',
     aiConfigured: Boolean(openai),
     integracoes: {
-      produtos: `${services.produtos}${paths.produtos}`,
-      score: `${services.score}${paths.score}`,
-      decisao: `${services.decisao}${paths.decisao}`,
-      operacoes: `${services.operacoes}${paths.operacoes}`,
+      produtos: endpoints.produtos,
+      score: endpoints.score,
+      decisao: endpoints.decisao,
+      operacoes: endpoints.operacoes,
       juros: 'encadeado pela Decisão; CredCasa não chama diretamente'
     },
     regras: {
@@ -275,10 +296,20 @@ app.post('/api/esteira/iniciar', async (req, res) => {
   try {
     // 1. Produtos Financeiros
     registrarEtapa(pedido, 'PRODUTOS', 'INICIADA');
-    const produtos = await chamarJson(`${services.produtos}${paths.produtos}`, { method: 'GET' });
+    const produtos = await chamarJson(endpoints.produtos, { method: 'GET' });
     pedido.produtos = produtos;
     const listaProdutos = Array.isArray(produtos) ? produtos : (produtos?.produtos || []);
     pedido.produtoEscolhido = listaProdutos.find(p => String(p.id) === String(entrada.produtoId)) || null;
+    if (!pedido.produtoEscolhido) {
+      pedido.status = 'ERRO_VALIDACAO';
+      registrarEtapa(pedido, 'PRODUTOS', 'ERRO', `Produto não encontrado: ${entrada.produtoId}`);
+      return res.status(400).json({
+        ok: false,
+        erro: 'produtoId não foi encontrado no serviço de Produtos.',
+        idFinanciamento,
+        pedido
+      });
+    }
     registrarEtapa(pedido, 'PRODUTOS', 'CONCLUIDA');
 
     // 2. Score — contrato real informado pelo grupo Score
@@ -286,7 +317,7 @@ app.post('/api/esteira/iniciar', async (req, res) => {
     const scorePayload = montarPayloadScore(entrada, idFinanciamento);
     pedido.scoreSolicitacao = scorePayload;
 
-    const score = await chamarJson(`${services.score}${paths.score}`, {
+    const score = await chamarJson(endpoints.score, {
       method: 'POST',
       headers: entrada.cenarioTeste ? { 'X-CredCasa-Cenario-Teste': String(entrada.cenarioTeste) } : {},
       body: JSON.stringify(scorePayload)
@@ -296,7 +327,7 @@ app.post('/api/esteira/iniciar', async (req, res) => {
 
     // 3. Decisão — recebe EXATAMENTE a resposta do Score, sem envelope nem alteração.
     registrarEtapa(pedido, 'DECISAO', 'INICIADA');
-    const decisao = await chamarJson(`${services.decisao}${paths.decisao}`, {
+    const decisao = await chamarJson(endpoints.decisao, {
       method: 'POST',
       body: JSON.stringify(score)
     });
@@ -346,18 +377,19 @@ app.post('/api/esteira/iniciar', async (req, res) => {
     }
 
     // Juros não é chamado diretamente: a Decisão já realizou essa integração.
+    if (!pedido.integracaoJuros) {
+      throw new Error('Decisão retornou APROVADO sem o campo integracaoJuros. Operações não serão acionadas.');
+    }
     registrarEtapa(
       pedido,
       'SIMULACAO',
-      pedido.integracaoJuros ? 'RECEBIDA_VIA_DECISAO' : 'SEM_RETORNO',
-      pedido.integracaoJuros
-        ? 'Resultado de Juros recebido no campo integracaoJuros da Decisão.'
-        : 'Decisão aprovou, mas não retornou integracaoJuros.'
+      'RECEBIDA_VIA_DECISAO',
+      'Resultado de Juros recebido no campo integracaoJuros da Decisão.'
     );
 
     // 4. Operações Financeiras — somente após APROVADO.
     registrarEtapa(pedido, 'OPERACOES', 'INICIADA');
-    const operacao = await chamarJson(`${services.operacoes}${paths.operacoes}`, {
+    const operacao = await chamarJson(endpoints.operacoes, {
       method: 'POST',
       body: JSON.stringify({
         idFinanciamento,

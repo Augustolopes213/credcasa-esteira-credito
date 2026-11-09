@@ -45,10 +45,19 @@
           <label>Nome completo<input id="nome" autocomplete="name" placeholder="Digite seu nome" required></label>
           <label>CPF<input id="cpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" required></label>
           <label>Data de nascimento<input id="nascimento" type="date" required></label>
+          <label>Estado civil<select id="estadoCivil"><option value="SOLTEIRO">Solteiro(a)</option><option value="CASADO" selected>Casado(a)</option><option value="DIVORCIADO">Divorciado(a)</option><option value="VIUVO">Viúvo(a)</option><option value="UNIAO_ESTAVEL">União estável</option></select></label>
           <label>Renda mensal (R$)<input id="renda" type="number" min="0.01" step="0.01" placeholder="Digite sua renda" required></label>
+          <label>Dívida total (R$)<input id="dividaTotal" type="number" min="0" step="0.01" value="0" required></label>
+          <label>Número de dependentes<input id="numeroDependentes" type="number" min="0" step="1" value="0" required></label>
+          <label>Dias de atraso nos últimos 12 meses<input id="diasAtraso" type="number" min="0" step="1" value="0" required></label>
+          <label>Limite rotativo utilizado (R$)<input id="limiteUtilizado" type="number" min="0" step="0.01" value="0" required></label>
+          <label>Limite rotativo total (R$)<input id="limiteTotal" type="number" min="0" step="0.01" value="0" required></label>
+          <label>Meses no emprego atual<input id="mesesEmprego" type="number" min="0" step="1" value="12" required></label>
+          <label>Meses de relacionamento com o banco<input id="mesesBanco" type="number" min="0" step="1" value="12" required></label>
           <label>WhatsApp<input id="telefone" inputmode="tel" placeholder="(00) 00000-0000"></label>
           <label>E-mail<input id="email" type="email" placeholder="voce@email.com"></label>
         </div>
+        <div class="notice"><b>Dados para o Score</b><span>Esses campos seguem o contrato da API de Score e são enviados pelo orquestrador CredCasa.</span></div>
         <div class="actions"><button type="button" class="btn primary next">Continuar <span>›</span></button></div>
       </div>
 
@@ -70,11 +79,12 @@
         <div class="form-head"><span class="icon">▣</span><div><h3>Condições do financiamento</h3><p>Defina os parâmetros utilizados nesta simulação.</p></div></div>
         <div class="grid three">
           <label>Prazo (meses)<input id="prazo" type="number" min="1" step="1" value="240" required></label>
-          <label>Taxa mensal (%)<input id="taxa" type="number" min="0" step="0.01" value="0.80" required></label>
           <label>Sistema de amortização<select id="sistema"><option>SAC</option><option>PRICE</option></select></label>
+          <label>Data de liberação<input id="dataLiberacao" type="date" required></label>
+          <label>Primeiro relacionamento?<select id="primeiroRelacionamento"><option value="false" selected>Não</option><option value="true">Sim</option></select></label>
         </div>
         <div class="rule-grid"><div><b>Regra de capacidade</b><span>Referência acadêmica: até 30% da renda.</span></div><div><b>Motor de decisão</b><span>Preparado para score, bureau e antifraude.</span></div><div><b>Integrações</b><span>Contratos desacoplados por ID da proposta.</span></div></div>
-        <div class="notice"><b>Importante</b><span>O valor financiado é imóvel − entrada. Em produção, juros, score, antifraude e decisão devem ser serviços independentes.</span></div>
+        <div class="notice"><b>Importante</b><span>O valor financiado é imóvel − entrada. No fluxo integrado, o CredCasa chama Score e Decisão; a Decisão aciona Juros e devolve o resultado em integracaoJuros.</span></div>
         <div class="actions"><button type="button" class="btn secondary prev">‹ Voltar</button><button type="submit" class="btn primary">Criar e analisar proposta <span>›</span></button></div>
       </div>
     </form>
@@ -83,7 +93,7 @@
 
 <section class="journey" id="etapas"><div class="section-center"><span class="section-kicker">COMO FUNCIONA</span><h2>Uma esteira pensada para crédito moderno</h2><p>Cada etapa possui responsabilidade clara, rastreabilidade e espaço para automação.</p></div><div class="journey-grid"><article><span>01</span><b>Captura</b><p>Onboarding e formulário com validação dos dados.</p></article><article><span>02</span><b>Enriquecimento</b><p>Bureau, cadastro, antifraude e dados complementares.</p></article><article><span>03</span><b>Risco</b><p>Score, capacidade, políticas e modelos de risco.</p></article><article><span>04</span><b>Decisão</b><p>Aprovação, recusa ou encaminhamento manual.</p></article><article><span>05</span><b>Contratação</b><p>Contrato e assinatura digital após aprovação.</p></article><article><span>06</span><b>Liberação</b><p>Disbursal idempotente e preparado para PIX/TED.</p></article></div></section>
 
-<section class="architecture" id="esteira"><div class="section-center"><span class="section-kicker">ARQUITETURA</span><h2>Visibilidade de ponta a ponta</h2><p>O protótipo já organiza os pontos onde uma arquitetura real pode receber microsserviços e eventos.</p></div><div class="arch-flow"><div>Cliente</div><i>→</i><div>Orquestrador</div><i>→</i><div>Decision Engine</div><i>→</i><div>Contratação</div><i>→</i><div>Disbursal</div></div><div class="services"><span>PostgreSQL</span><span>Redis</span><span>Kafka / RabbitMQ</span><span>OpenTelemetry</span><span>OAuth2 / OIDC</span><span>Auditoria LGPD</span></div></section>
+<section class="architecture" id="esteira"><div class="section-center"><span class="section-kicker">ARQUITETURA</span><h2>Visibilidade de ponta a ponta</h2><p>O protótipo já organiza os pontos onde uma arquitetura real pode receber microsserviços e eventos.</p></div><div class="arch-flow"><div>Cliente</div><i>→</i><div>CredCasa / Financiamento</div><i>→</i><div>Score</div><i>→</i><div>Decisão + Juros</div><i>→</i><div>Operações</div></div><div class="services"><span>PostgreSQL</span><span>Redis</span><span>Kafka / RabbitMQ</span><span>OpenTelemetry</span><span>OAuth2 / OIDC</span><span>Auditoria LGPD</span></div></section>
 
 <section class="benefits" id="vantagens"><div class="section-center"><span class="section-kicker">PENSADO PARA ESCALAR</span><h2>Controle, segurança e resiliência</h2></div><div class="benefit-grid"><article><div>⚡</div><b>Resiliência</b><p>Idempotência, retries e circuit breaker preparados para integrações externas.</p></article><article><div>🔐</div><b>Segurança</b><p>TLS, controle de acesso e proteção de dados como princípios de arquitetura.</p></article><article><div>📈</div><b>Observabilidade</b><p>Eventos, métricas, logs estruturados e tracing para encontrar gargalos.</p></article><article><div>🤖</div><b>IA & dados</b><p>Espaço para OCR, antifraude, ML e modelos de risco em tempo real.</p></article></div></section>
 
