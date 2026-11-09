@@ -8,7 +8,7 @@
     body{font-family:Arial,sans-serif;max-width:1000px;margin:40px auto;padding:0 20px;background:#f5f7fb;color:#172033}
     .card{background:white;border-radius:14px;padding:24px;box-shadow:0 6px 30px rgba(0,0,0,.08);margin-bottom:20px}
     button{padding:12px 18px;border:0;border-radius:8px;cursor:pointer;margin-right:8px;font-weight:700}
-    .sim{background:#146c43;color:white}.nao{background:#b42318;color:white}
+    .sim{background:#146c43;color:white}.nao{background:#b42318;color:white}.manual{background:#8a6116;color:white}
     pre{white-space:pre-wrap;background:#0d1117;color:#d9e2f2;padding:18px;border-radius:10px;overflow:auto;min-height:180px}
     .etapa{padding:8px 0;border-bottom:1px solid #e7ebf3}
     .ok{font-weight:700;color:#146c43}.erro{font-weight:700;color:#b42318}
@@ -17,9 +17,10 @@
 <body>
   <div class="card">
     <h1>Teste local da Esteira CredCasa</h1>
-    <p>Esta página usa microsserviços simulados somente para validar a orquestração do grupo Financiamento de Imóvel.</p>
-    <button class="sim" onclick="executar('APROVADO')">Testar cenário SIM</button>
-    <button class="nao" onclick="executar('NEGADO')">Testar cenário NÃO</button>
+    <p>Fluxo atual: Produtos → Score → Decisão. Se APROVADO, a própria Decisão integra Juros e devolve <code>integracaoJuros</code>; o CredCasa então chama Operações.</p>
+    <button class="sim" onclick="executar('APROVADO')">Testar APROVADO</button>
+    <button class="nao" onclick="executar('NEGADO')">Testar REPROVADO</button>
+    <button class="manual" onclick="executar('MANUAL')">Testar ANÁLISE MANUAL</button>
   </div>
   <div class="card">
     <h2>Etapas</h2>
@@ -35,10 +36,26 @@ async function executar(cenarioTeste){
   const etapas=document.getElementById('etapas');
   saida.textContent='Executando...'; etapas.textContent='Executando...';
   const body={
-    cliente:{nome:'Cliente Teste',cpf:'12345678900',rendaMensal:15000},
+    cliente:{
+      nome:'Cliente Teste',
+      tipoPessoa:'PF',
+      cpf:'12345678900',
+      rendaMensal:15000,
+      dividaTotal:25000,
+      idade:35,
+      estadoCivil:'CASADO',
+      numeroDependentes:1,
+      diasAtrasoUltimos12Meses:0,
+      limiteRotativoUtilizado:1000,
+      limiteRotativoTotal:10000,
+      mesesNoEmpregoAtual:48,
+      mesesRelacionamentoBanco:60
+    },
     imovel:{valor:500000,entrada:100000},
     produtoId:'IMOVEL-SAC',
     prazoMeses:360,
+    dataLiberacao:new Date().toISOString().slice(0,10),
+    primeiroRelacionamento:false,
     cenarioTeste
   };
   try{

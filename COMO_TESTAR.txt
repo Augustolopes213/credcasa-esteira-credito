@@ -1,21 +1,26 @@
-TESTE MAIS SIMPLES (WINDOWS)
+CRED-CASA — COMO TESTAR
 
-1. Extraia todo o ZIP para uma pasta.
-2. Dê duplo clique em INICIAR_TESTE.cmd.
-3. Na primeira vez, aguarde o npm instalar as dependências.
-4. Será aberta uma janela chamada "CredCasa - Servidores". Deixe-a aberta.
-5. O navegador abrirá em http://localhost:3000/teste-api.html
-6. Clique em:
-   - "Testar cenário SIM" para percorrer as 5 etapas.
-   - "Testar cenário NÃO" para confirmar que a esteira encerra após Decisão.
+1) Abra um terminal na pasta backend.
+2) Rode:
+   npm.cmd install
+   npm.cmd run local:all
 
-RESULTADO ESPERADO NO CENÁRIO SIM
-PRODUTOS -> SCORE -> DECISAO -> SIMULACAO -> OPERACOES -> ESTEIRA FINALIZADA
+3) Abra no navegador:
+   http://localhost:3000/teste-api.html
 
-RESULTADO ESPERADO NO CENÁRIO NÃO
-PRODUTOS -> SCORE -> DECISAO -> ESTEIRA ENCERRADA
-Simulação e Operações NÃO devem ser chamadas.
+4) Teste os três cenários:
+   - APROVADO: Score -> Decisão -> integracaoJuros -> Operações -> FINALIZADO
+   - REPROVADO: Score -> Decisão -> encerra
+   - ANÁLISE MANUAL: Score -> Decisão -> PENDENTE_ANALISE_MANUAL
 
-IMPORTANTE
-A pasta backend/mocks simula os outros grupos somente para teste local.
-Quando os grupos entregarem as APIs reais, troque as URLs no backend/.env.
+INTEGRAÇÃO REAL NA FACULDADE
+
+No backend/.env configure:
+SCORE_API_URL=http://IP_DO_SCORE:8080
+DECISAO_API_URL=http://IP_DA_DECISAO:8081
+
+O CredCasa usa:
+Score:   POST /api/v1/score/evaluate
+Decisão: POST /api/v1/decisao
+
+IMPORTANTE: o CredCasa NÃO chama Juros diretamente. A Decisão chama Juros e devolve o resultado no campo integracaoJuros.

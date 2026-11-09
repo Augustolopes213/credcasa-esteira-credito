@@ -8,7 +8,8 @@
     "dev": "node --watch server.js",
     "local:all": "node start-all.js",
     "test:aprovado": "node test-flow.js APROVADO",
-    "test:negado": "node test-flow.js NEGADO"
+    "test:negado": "node test-flow.js NEGADO",
+    "test:manual": "node test-flow.js MANUAL"
   },
   "dependencies": {
     "cors": "^2.8.5",

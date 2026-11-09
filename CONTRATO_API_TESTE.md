@@ -1,67 +1,69 @@
-# CredCasa — Contrato de teste da esteira
+# CredCasa — Contrato atualizado para integração
 
-> Este contrato é **provisório para teste local**. O material da disciplina define as rotas e a ordem, mas não fornece o JSON exato de cada grupo. Quando cada grupo publicar seu contrato real, ajuste os corpos enviados e as URLs no `.env`.
-
-## API exposta pelo grupo Financiamento de Imóvel
+## API exposta pelo Financiamento
 
 ### POST `/api/esteira/iniciar`
 
-Entrada de teste:
+Exemplo PF:
 
 ```json
 {
   "cliente": {
     "nome": "Cliente Teste",
+    "tipoPessoa": "PF",
     "cpf": "12345678900",
-    "rendaMensal": 15000
+    "rendaMensal": 15000,
+    "dividaTotal": 25000,
+    "idade": 35,
+    "estadoCivil": "CASADO",
+    "numeroDependentes": 1,
+    "diasAtrasoUltimos12Meses": 0,
+    "limiteRotativoUtilizado": 1000,
+    "limiteRotativoTotal": 10000,
+    "mesesNoEmpregoAtual": 48,
+    "mesesRelacionamentoBanco": 60
   },
   "imovel": {
     "valor": 500000,
     "entrada": 100000
   },
   "produtoId": "IMOVEL-SAC",
-  "prazoMeses": 360
+  "prazoMeses": 360,
+  "dataLiberacao": "2026-11-08",
+  "primeiroRelacionamento": false
 }
 ```
 
-Para o ambiente local de mocks, pode ser usado `"cenarioTeste": "NEGADO"` apenas para validar o encerramento na etapa 3. Esse campo não faz parte do contrato final.
+O `idFinanciamento` é gerado pelo CredCasa no formato `FIN-...`.
 
-## Ordem executada pelo orquestrador
+## Chamada do Score
 
-1. `GET {PRODUTOS_API_URL}/produtos`
-2. `POST {SCORE_API_URL}/score`
-3. `POST {DECISAO_API_URL}/decisao`
-4. Se a decisão for `SIM`: `POST {JUROS_API_URL}/simulacao`
-5. Se a decisão for `SIM`: `POST {OPERACOES_API_URL}/operacoes`
+O CredCasa transforma os dados recebidos e chama:
 
-Se a Decisão responder `NÃO`, o orquestrador encerra a esteira e não chama as etapas 4 e 5.
+`POST {SCORE_API_URL}/api/v1/score/evaluate`
 
-## Estado do pedido
+com `modalidade = OUTROS_BENS` e `valor = valor do imóvel - entrada`.
 
-O CredCasa armazena em memória, durante o teste:
+A resposta é armazenada integralmente em `pedido.score`.
 
-- produtos retornados;
-- score;
-- decisão;
-- simulação, quando houver;
-- resposta de operações, quando houver;
-- histórico de etapas.
+## Fluxo padrão
 
-Consultas:
+1. Produtos
+2. Score
+3. Decisão
+4. Simulação/Juros se SIM
+5. Operações se SIM
 
-- `GET /api/esteira`
-- `GET /api/esteira/:id`
+O modo alternativo `SCORE_ENCADEIA_DECISAO_JUROS=true` existe apenas para compatibilidade caso seja confirmado que Score chama Decisão e Decisão chama Juros. Nesse modo o CredCasa para após Score para evitar duplicidade; ainda será necessário definir como os resultados downstream retornam ao Financiamento.
 
-## URLs dos serviços
-
-Defina em `backend/.env`:
+## Configuração
 
 ```env
 PRODUTOS_API_URL=http://localhost:3001
 SCORE_API_URL=http://localhost:3002
+SCORE_API_PATH=/api/v1/score/evaluate
 DECISAO_API_URL=http://localhost:3003
 JUROS_API_URL=http://localhost:3004
 OPERACOES_API_URL=http://localhost:3005
+SCORE_ENCADEIA_DECISAO_JUROS=false
 ```
-
-No ambiente real, troque cada URL pela publicada pelo grupo correspondente.

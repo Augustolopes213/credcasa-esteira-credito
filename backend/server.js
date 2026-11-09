@@ -19,8 +19,14 @@ const services = {
   produtos: process.env.PRODUTOS_API_URL || 'http://localhost:3001',
   score: process.env.SCORE_API_URL || 'http://localhost:3002',
   decisao: process.env.DECISAO_API_URL || 'http://localhost:3003',
-  juros: process.env.JUROS_API_URL || 'http://localhost:3004',
   operacoes: process.env.OPERACOES_API_URL || 'http://localhost:3005'
+};
+
+const paths = {
+  produtos: process.env.PRODUTOS_API_PATH || '/produtos',
+  score: process.env.SCORE_API_PATH || '/api/v1/score/evaluate',
+  decisao: process.env.DECISAO_API_PATH || '/api/v1/decisao',
+  operacoes: process.env.OPERACOES_API_PATH || '/operacoes'
 };
 
 const pedidos = new Map();
@@ -87,31 +93,107 @@ async function chamarJson(url, options = {}) {
   }
 }
 
+function numeroValido(valor, { inteiro = false, minimo = 0 } = {}) {
+  const n = Number(valor);
+  if (!Number.isFinite(n) || n < minimo) return false;
+  return !inteiro || Number.isInteger(n);
+}
+
 function validarEntrada(body) {
   const erros = [];
-  if (!body || typeof body !== 'object') erros.push('corpo JSON é obrigatório');
-  if (!body?.cliente?.nome) erros.push('cliente.nome é obrigatório');
-  if (!body?.cliente?.cpf) erros.push('cliente.cpf é obrigatório');
-  if (!Number.isFinite(Number(body?.cliente?.rendaMensal)) || Number(body?.cliente?.rendaMensal) <= 0) {
-    erros.push('cliente.rendaMensal deve ser maior que zero');
+  if (!body || typeof body !== 'object') return ['corpo JSON é obrigatório'];
+
+  const cliente = body.cliente || {};
+  const tipoPessoa = String(cliente.tipoPessoa || 'PF').trim().toUpperCase();
+
+  if (!cliente.nome) erros.push('cliente.nome é obrigatório');
+  if (!['PF', 'PJ'].includes(tipoPessoa)) erros.push('cliente.tipoPessoa deve ser PF ou PJ');
+
+  if (tipoPessoa === 'PF') {
+    if (!/^\d{11}$/.test(String(cliente.cpf || ''))) erros.push('cliente.cpf deve conter 11 números, sem pontuação');
+    if (!numeroValido(cliente.rendaMensal, { minimo: 0.01 })) erros.push('cliente.rendaMensal deve ser maior que zero');
+    if (!numeroValido(cliente.dividaTotal)) erros.push('cliente.dividaTotal deve ser um número zero ou maior');
+    if (!numeroValido(cliente.idade, { inteiro: true, minimo: 1 })) erros.push('cliente.idade deve ser um inteiro maior que zero');
+    if (!String(cliente.estadoCivil || '').trim()) erros.push('cliente.estadoCivil é obrigatório');
+    if (!numeroValido(cliente.numeroDependentes, { inteiro: true })) erros.push('cliente.numeroDependentes deve ser um inteiro zero ou maior');
+    if (!numeroValido(cliente.diasAtrasoUltimos12Meses, { inteiro: true })) erros.push('cliente.diasAtrasoUltimos12Meses deve ser um inteiro zero ou maior');
+    if (!numeroValido(cliente.limiteRotativoUtilizado)) erros.push('cliente.limiteRotativoUtilizado deve ser um número zero ou maior');
+    if (!numeroValido(cliente.limiteRotativoTotal)) erros.push('cliente.limiteRotativoTotal deve ser um número zero ou maior');
+    if (!numeroValido(cliente.mesesNoEmpregoAtual, { inteiro: true })) erros.push('cliente.mesesNoEmpregoAtual deve ser um inteiro zero ou maior');
+    if (!numeroValido(cliente.mesesRelacionamentoBanco, { inteiro: true })) erros.push('cliente.mesesRelacionamentoBanco deve ser um inteiro zero ou maior');
   }
-  if (!Number.isFinite(Number(body?.imovel?.valor)) || Number(body?.imovel?.valor) <= 0) {
-    erros.push('imovel.valor deve ser maior que zero');
+
+  if (tipoPessoa === 'PJ') {
+    if (!/^\d{14}$/.test(String(cliente.cnpj || ''))) erros.push('cliente.cnpj deve conter 14 números, sem pontuação');
+    if (!String(cliente.razaoSocial || '').trim()) erros.push('cliente.razaoSocial é obrigatório');
+    if (!numeroValido(cliente.faturamentoMensal)) erros.push('cliente.faturamentoMensal deve ser um número zero ou maior');
+    if (!numeroValido(cliente.despesasOperacionaisMensais)) erros.push('cliente.despesasOperacionaisMensais deve ser um número zero ou maior');
+    if (!numeroValido(cliente.passivoTotalBancario)) erros.push('cliente.passivoTotalBancario deve ser um número zero ou maior');
+    if (!numeroValido(cliente.faturamentoBrutoAnual)) erros.push('cliente.faturamentoBrutoAnual deve ser um número zero ou maior');
+    if (!numeroValido(cliente.diasAtrasoUltimos12Meses, { inteiro: true })) erros.push('cliente.diasAtrasoUltimos12Meses deve ser um inteiro zero ou maior');
+    if (!numeroValido(cliente.mesesConstituicao, { inteiro: true })) erros.push('cliente.mesesConstituicao deve ser um inteiro zero ou maior');
+    if (!String(cliente.setorAtuacao || '').trim()) erros.push('cliente.setorAtuacao é obrigatório');
   }
-  if (!Number.isFinite(Number(body?.imovel?.entrada)) || Number(body?.imovel?.entrada) < 0) {
-    erros.push('imovel.entrada deve ser zero ou maior');
-  }
-  if (Number(body?.imovel?.entrada) >= Number(body?.imovel?.valor)) {
-    erros.push('imovel.entrada deve ser menor que imovel.valor');
-  }
+
+  if (!numeroValido(body?.imovel?.valor, { minimo: 0.01 })) erros.push('imovel.valor deve ser maior que zero');
+  if (!numeroValido(body?.imovel?.entrada)) erros.push('imovel.entrada deve ser zero ou maior');
+  if (Number(body?.imovel?.entrada) >= Number(body?.imovel?.valor)) erros.push('imovel.entrada deve ser menor que imovel.valor');
   if (!body?.produtoId) erros.push('produtoId é obrigatório');
-  if (!Number.isInteger(Number(body?.prazoMeses)) || Number(body?.prazoMeses) <= 0) {
-    erros.push('prazoMeses deve ser um inteiro maior que zero');
-  }
+  if (!numeroValido(body?.prazoMeses, { inteiro: true, minimo: 1 })) erros.push('prazoMeses deve ser um inteiro maior que zero');
+  if (body?.dataLiberacao && !/^\d{4}-\d{2}-\d{2}$/.test(String(body.dataLiberacao))) erros.push('dataLiberacao deve estar no formato AAAA-MM-DD');
+  if (body?.primeiroRelacionamento !== undefined && typeof body.primeiroRelacionamento !== 'boolean') erros.push('primeiroRelacionamento deve ser true ou false');
+
   return erros;
 }
 
-function normalizarDecisao(valor) {
+function montarPayloadScore(entrada, idFinanciamento) {
+  const cliente = entrada.cliente || {};
+  const tipoPessoa = String(cliente.tipoPessoa || 'PF').trim().toUpperCase();
+  const valorFinanciado = Number(entrada.imovel.valor) - Number(entrada.imovel.entrada);
+
+  const payload = {
+    tipoPessoa,
+    identificador: idFinanciamento,
+    valor: valorFinanciado,
+    modalidade: 'OUTROS_BENS',
+    prazoMeses: Number(entrada.prazoMeses),
+    dataLiberacao: entrada.dataLiberacao || new Date().toISOString().slice(0, 10),
+    primeiroRelacionamento: entrada.primeiroRelacionamento ?? false
+  };
+
+  if (tipoPessoa === 'PF') {
+    payload.perfilPF = {
+      cpf: String(cliente.cpf),
+      rendaMensal: Number(cliente.rendaMensal),
+      dividaTotal: Number(cliente.dividaTotal),
+      idade: Number(cliente.idade),
+      estadoCivil: String(cliente.estadoCivil),
+      numeroDependentes: Number(cliente.numeroDependentes),
+      diasAtrasoUltimos12Meses: Number(cliente.diasAtrasoUltimos12Meses),
+      limiteRotativoUtilizado: Number(cliente.limiteRotativoUtilizado),
+      limiteRotativoTotal: Number(cliente.limiteRotativoTotal),
+      mesesNoEmpregoAtual: Number(cliente.mesesNoEmpregoAtual),
+      mesesRelacionamentoBanco: Number(cliente.mesesRelacionamentoBanco)
+    };
+  } else {
+    payload.perfilPJ = {
+      cnpj: String(cliente.cnpj),
+      razaoSocial: String(cliente.razaoSocial),
+      faturamentoMensal: Number(cliente.faturamentoMensal),
+      despesasOperacionaisMensais: Number(cliente.despesasOperacionaisMensais),
+      passivoTotalBancario: Number(cliente.passivoTotalBancario),
+      faturamentoBrutoAnual: Number(cliente.faturamentoBrutoAnual),
+      diasAtrasoUltimos12Meses: Number(cliente.diasAtrasoUltimos12Meses),
+      mesesConstituicao: Number(cliente.mesesConstituicao),
+      setorAtuacao: String(cliente.setorAtuacao)
+    };
+  }
+
+  return payload;
+}
+
+function normalizarStatusDecisao(decisao) {
+  const valor = decisao?.status ?? decisao?.decisao ?? decisao?.resultado;
   return String(valor || '')
     .trim()
     .normalize('NFD')
@@ -124,7 +206,17 @@ app.get('/api/health', (_req, res) => {
     ok: true,
     servico: 'Financiamento de Imóvel - Orquestrador',
     aiConfigured: Boolean(openai),
-    integracoes: services
+    integracoes: {
+      produtos: `${services.produtos}${paths.produtos}`,
+      score: `${services.score}${paths.score}`,
+      decisao: `${services.decisao}${paths.decisao}`,
+      operacoes: `${services.operacoes}${paths.operacoes}`,
+      juros: 'encadeado pela Decisão; CredCasa não chama diretamente'
+    },
+    regras: {
+      modalidadeScore: 'OUTROS_BENS',
+      decisao: ['APROVADO', 'REPROVADO', 'ANALISE_MANUAL']
+    }
   });
 });
 
@@ -133,6 +225,16 @@ app.get('/api/esteira', (_req, res) => {
     ok: true,
     quantidade: pedidos.size,
     pedidos: Array.from(pedidos.values())
+  });
+});
+
+app.get('/api/esteira/iniciar', (_req, res) => {
+  return res.status(405).json({
+    ok: false,
+    erro: 'Este endpoint aceita POST, não GET.',
+    metodo: 'POST',
+    endpoint: '/api/esteira/iniciar',
+    dica: 'Envie um corpo JSON conforme o contrato do CredCasa.'
   });
 });
 
@@ -160,8 +262,10 @@ app.post('/api/esteira/iniciar', async (req, res) => {
     entrada,
     produtos: null,
     produtoEscolhido: null,
+    scoreSolicitacao: null,
     score: null,
     decisao: null,
+    integracaoJuros: null,
     simulacao: null,
     operacao: null,
     etapas: []
@@ -171,81 +275,89 @@ app.post('/api/esteira/iniciar', async (req, res) => {
   try {
     // 1. Produtos Financeiros
     registrarEtapa(pedido, 'PRODUTOS', 'INICIADA');
-    const produtos = await chamarJson(`${services.produtos}/produtos`, { method: 'GET' });
+    const produtos = await chamarJson(`${services.produtos}${paths.produtos}`, { method: 'GET' });
     pedido.produtos = produtos;
     const listaProdutos = Array.isArray(produtos) ? produtos : (produtos?.produtos || []);
     pedido.produtoEscolhido = listaProdutos.find(p => String(p.id) === String(entrada.produtoId)) || null;
     registrarEtapa(pedido, 'PRODUTOS', 'CONCLUIDA');
 
-    // 2. Score
+    // 2. Score — contrato real informado pelo grupo Score
     registrarEtapa(pedido, 'SCORE', 'INICIADA');
-    const score = await chamarJson(`${services.score}/score`, {
+    const scorePayload = montarPayloadScore(entrada, idFinanciamento);
+    pedido.scoreSolicitacao = scorePayload;
+
+    const score = await chamarJson(`${services.score}${paths.score}`, {
       method: 'POST',
-      body: JSON.stringify({
-        idFinanciamento,
-        cliente: entrada.cliente,
-        imovel: entrada.imovel,
-        produtoId: entrada.produtoId,
-        prazoMeses: entrada.prazoMeses,
-        cenarioTeste: entrada.cenarioTeste
-      })
+      headers: entrada.cenarioTeste ? { 'X-CredCasa-Cenario-Teste': String(entrada.cenarioTeste) } : {},
+      body: JSON.stringify(scorePayload)
     });
     pedido.score = score;
     registrarEtapa(pedido, 'SCORE', 'CONCLUIDA');
 
-    // 3. Decisão
+    // 3. Decisão — recebe EXATAMENTE a resposta do Score, sem envelope nem alteração.
     registrarEtapa(pedido, 'DECISAO', 'INICIADA');
-    const decisao = await chamarJson(`${services.decisao}/decisao`, {
+    const decisao = await chamarJson(`${services.decisao}${paths.decisao}`, {
       method: 'POST',
-      body: JSON.stringify({
-        idFinanciamento,
-        cliente: entrada.cliente,
-        imovel: entrada.imovel,
-        produtoId: entrada.produtoId,
-        prazoMeses: entrada.prazoMeses,
-        score,
-        cenarioTeste: entrada.cenarioTeste
-      })
+      body: JSON.stringify(score)
     });
     pedido.decisao = decisao;
+    pedido.integracaoJuros = decisao?.integracaoJuros ?? null;
+    pedido.simulacao = pedido.integracaoJuros;
     registrarEtapa(pedido, 'DECISAO', 'CONCLUIDA');
 
-    const respostaDecisao = normalizarDecisao(decisao?.decisao ?? decisao?.resultado);
-    if (respostaDecisao !== 'SIM') {
-      pedido.status = 'ENCERRADO_DECISAO_NAO';
-      registrarEtapa(pedido, 'ESTEIRA', 'ENCERRADA', 'Decisão respondeu NÃO. Simulação e Operações não foram acionadas.');
+    const statusDecisao = normalizarStatusDecisao(decisao);
+
+    if (statusDecisao === 'REPROVADO') {
+      pedido.status = 'REPROVADO';
+      registrarEtapa(
+        pedido,
+        'ESTEIRA',
+        'ENCERRADA',
+        'Decisão respondeu REPROVADO. Operações não foram acionadas.'
+      );
       return res.json({
         ok: true,
         idFinanciamento,
         status: pedido.status,
-        mensagem: 'Esteira encerrada após a decisão.',
+        mensagem: 'Financiamento reprovado pela Decisão.',
         pedido
       });
     }
 
-    // 4. Cálculo de Juros / Simulação
-    registrarEtapa(pedido, 'SIMULACAO', 'INICIADA');
-    const simulacao = await chamarJson(`${services.juros}/simulacao`, {
-      method: 'POST',
-      body: JSON.stringify({
+    if (statusDecisao === 'ANALISE_MANUAL') {
+      pedido.status = 'PENDENTE_ANALISE_MANUAL';
+      registrarEtapa(
+        pedido,
+        'ESTEIRA',
+        'PENDENTE',
+        'Decisão solicitou ANÁLISE MANUAL. Operação aguarda revisão.'
+      );
+      return res.status(202).json({
+        ok: true,
         idFinanciamento,
-        cliente: entrada.cliente,
-        produtoId: entrada.produtoId,
-        produto: pedido.produtoEscolhido,
-        valorImovel: Number(entrada.imovel.valor),
-        entrada: Number(entrada.imovel.entrada),
-        valorFinanciado: Number(entrada.imovel.valor) - Number(entrada.imovel.entrada),
-        prazoMeses: Number(entrada.prazoMeses),
-        score,
-        decisao
-      })
-    });
-    pedido.simulacao = simulacao;
-    registrarEtapa(pedido, 'SIMULACAO', 'CONCLUIDA');
+        status: pedido.status,
+        mensagem: 'Financiamento pendente de análise manual.',
+        pedido
+      });
+    }
 
-    // 5. Operações Financeiras
+    if (statusDecisao !== 'APROVADO') {
+      throw new Error(`Status inesperado retornado pela Decisão: ${statusDecisao || '(vazio)'}`);
+    }
+
+    // Juros não é chamado diretamente: a Decisão já realizou essa integração.
+    registrarEtapa(
+      pedido,
+      'SIMULACAO',
+      pedido.integracaoJuros ? 'RECEBIDA_VIA_DECISAO' : 'SEM_RETORNO',
+      pedido.integracaoJuros
+        ? 'Resultado de Juros recebido no campo integracaoJuros da Decisão.'
+        : 'Decisão aprovou, mas não retornou integracaoJuros.'
+    );
+
+    // 4. Operações Financeiras — somente após APROVADO.
     registrarEtapa(pedido, 'OPERACOES', 'INICIADA');
-    const operacao = await chamarJson(`${services.operacoes}/operacoes`, {
+    const operacao = await chamarJson(`${services.operacoes}${paths.operacoes}`, {
       method: 'POST',
       body: JSON.stringify({
         idFinanciamento,
@@ -256,7 +368,7 @@ app.post('/api/esteira/iniciar', async (req, res) => {
         prazoMeses: entrada.prazoMeses,
         score,
         decisao,
-        simulacao
+        integracaoJuros: pedido.integracaoJuros
       })
     });
     pedido.operacao = operacao;
@@ -333,6 +445,7 @@ app.listen(port, '0.0.0.0', () => {
   console.log(`GET  http://localhost:${port}/api/esteira`);
   console.log(`GET  http://localhost:${port}/api/health`);
   console.log(`Página de teste: http://localhost:${port}/teste-api.html`);
+  console.log('Fluxo: Produtos -> Score -> Decisão (que integra Juros) -> Operações');
   console.log(openai ? 'IA configurada.' : 'IA não configurada (não impede a esteira).');
   console.log('');
 });

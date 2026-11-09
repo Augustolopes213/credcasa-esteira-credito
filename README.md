@@ -1,55 +1,52 @@
-# CredCasa — Orquestrador da Esteira de Crédito
+# CredCasa — Financiamento de Imóvel / Orquestrador
 
-Projeto de teste do grupo **Financiamento de Imóvel**.
+O CredCasa é o microsserviço de Financiamento de Imóvel e orquestra a esteira de crédito por HTTP REST.
 
-O CredCasa é o orquestrador da esteira e chama, nesta ordem:
+## Fluxo atual integrado
 
-1. Produtos Financeiros — `GET /produtos`
-2. Score — `POST /score`
-3. Decisão — `POST /decisao`
-4. Cálculo de Juros — `POST /simulacao` (somente se a decisão for SIM)
-5. Operações Financeiras — `POST /operacoes` (somente se a decisão for SIM)
+```text
+Produtos
+  ↓
+Score
+  ↓
+Decisão
+  ├─ REPROVADO → encerra
+  ├─ ANALISE_MANUAL → fica pendente
+  └─ APROVADO → Decisão chama Juros e devolve integracaoJuros
+                         ↓
+                      Operações
+                         ↓
+                     FINALIZADO
+```
 
-## Teste local completo
+O CredCasa não chama Juros diretamente para evitar duplicidade.
 
-Abra um terminal na pasta `backend`:
+## Teste local
 
 ```powershell
+cd backend
 npm.cmd install
 npm.cmd run local:all
 ```
 
-Isso inicia:
-
-- CredCasa: `http://localhost:3000`
-- Produtos mock: porta `3001`
-- Score mock: porta `3002`
-- Decisão mock: porta `3003`
-- Juros mock: porta `3004`
-- Operações mock: porta `3005`
-
-Depois abra no navegador:
+Abra:
 
 `http://localhost:3000/teste-api.html`
 
-Use os botões **Testar cenário SIM** e **Testar cenário NÃO**.
+A página possui testes para APROVADO, REPROVADO e ANÁLISE MANUAL.
 
-Também é possível testar em um segundo terminal:
+## Integração real na rede da faculdade
 
-```powershell
-npm.cmd run test:aprovado
+Crie `backend/.env` a partir de `.env.example` e ajuste apenas os IPs:
+
+```env
+SCORE_API_URL=http://IP_DO_SCORE:8080
+DECISAO_API_URL=http://IP_DA_DECISAO:8081
 ```
 
-ou:
+Rotas usadas:
 
-```powershell
-npm.cmd run test:negado
-```
+- `POST /api/v1/score/evaluate`
+- `POST /api/v1/decisao`
 
-## Importante
-
-A pasta `backend/mocks` existe **somente para teste local**. Ela simula as APIs dos outros grupos e deve ser substituída pelas URLs reais quando os demais microsserviços estiverem publicados.
-
-Copie `backend/.env.example` para `backend/.env` e troque as URLs quando receber os contratos reais.
-
-Veja `CONTRATO_API_TESTE.md` para o contrato provisório usado no teste.
+Veja `INTEGRACAO_SCORE_REAL.md` para detalhes.
